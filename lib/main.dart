@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:rive/rive.dart';
+import 'package:rive_animation/siri_wave_example.dart';
+import 'package:siri_wave/siri_wave.dart';
 
 void main() => runApp(const MyApp());
 
@@ -46,7 +49,7 @@ class HomePage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute<void>(
-                      builder: (context) => const SimpleAnimation(),
+                      builder: (context) =>  SimpleAnimationStateView(),
                     ),
                   );
                 },
@@ -71,31 +74,148 @@ class HomePage extends StatelessWidget {
       );
 }
 
-class SimpleAnimation extends StatelessWidget {
-  const SimpleAnimation({Key? key}) : super(key: key);
+class SimpleAnimationStateView extends StatefulWidget {
+  const SimpleAnimationStateView({Key? key}) : super(key: key);
 
+  @override
+  State<SimpleAnimationStateView> createState() => _SimpleAnimationStateViewState();
+}
+
+class _SimpleAnimationStateViewState extends State<SimpleAnimationStateView> {
+
+  bool stopPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SimpleAnimation(stopPressed),
+
+      floatingActionButton: FloatingActionButton(
+        child: Text(stopPressed ?'Start' : 'Stop'),
+        onPressed: (){
+          setState(() {
+            if (stopPressed == false) {
+              this.stopPressed = true;
+            } else {
+              this.stopPressed = false;
+            }
+          });
+        },
+      ),
+    );
+  }
+}
+
+class CustomSiriWave extends StatelessWidget {
+  const CustomSiriWave({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final _controller = SiriWaveController();
+    _controller.setSpeed(0);
+    return    SiriWave(
+      controller: _controller,
+      options: SiriWaveOptions(
+        height:  500 ,
+        showSupportBar: false,
+        width: 600,
+      ),
+      style:  SiriWaveStyle.ios_9,
+    );
+  }
+}
+
+
+
+class SimpleAnimation extends StatefulWidget {
+  bool hasStop;
+  SimpleAnimation(this.hasStop,{Key? key}) : super(key: key);
+
+  @override
+  State<SimpleAnimation> createState() => _SimpleAnimationState();
+}
+
+
+class _SimpleAnimationState extends State<SimpleAnimation> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          title: const Text('Rive Animation'),
+          title:  Text('Rive Animation').animate().shake(),
           centerTitle: true,
         ),
+        backgroundColor: Colors.black,//widget.hasStop ? Colors.white : Colors.black,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: RiveAnimation.network(
-                  'https://public.rive.app/community/runtime-files/2191-4327-loader-solicitud-de-cuentas.riv',
+              CircleAvatar(
+                child: Container(
+                  child: Text('Bro'),
                 ),
-              ),
-              Expanded(
-                child: RiveAnimation.asset(
-                  'assets/dash_flutter_muscot.riv',
+              ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                  .then(delay: 1600.milliseconds)
+                  .scaleXY(end: 3.1, curve: Curves.easeInOutCubic)
+      .tint(color: Colors.red, end: 0.6)
+              .rotate(curve: Curves.elasticInOut, duration: 1.seconds),
+              Image.asset(
+                'assets/doctor_avatar_image.jpg',
+                fit: BoxFit.fill,
+              ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                  .then(delay: 600.milliseconds)
+                  .scaleXY(end: 1.1, curve: Curves.easeInOutCubic),
+              // CustomSiriWave(),
+              // Expanded(
+              //   child: RiveAnimation.network(
+              //     'https://public.rive.app/community/runtime-files/5665-11085-green-bubble.riv',
+              //     fit: BoxFit.fill,
+              //   ),
+              // ),
+              Text("Hello", style: TextStyle(color: Colors.white),).animate()
+                  .fadeIn(duration: 600.ms)
+                  .then(delay: 200.ms) // baseline=800ms
+                  .slide(),
+              Text("Before", style: TextStyle(color: Colors.white)).animate()
+                  .swap(duration: 900.ms, builder: (_, __) => Text("After",style: TextStyle(color: Colors.white))),
+             this.widget.hasStop
+                 ? Expanded(
+               child: ScaleTransition(
+                 scale: CurvedAnimation(
+                   parent: AnimationController(
+                     vsync: this,
+                     duration: Duration(milliseconds: 1500),
+                   )..forward(),
+                   curve: Curves.easeInOut,
+                 ),
+                 child: Expanded(
+                   child: CustomSiriWave(),
+                 ),
+               ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                   .then(delay: 1600.milliseconds)
+                   .scaleXY(end: 1.1, curve: Curves.easeInOut)
+                  // .tint(color: Colors.blue, end: 0.6)
+                   .rotate( duration: 10.seconds),
+             ) : Expanded(
+                child: ScaleTransition(
+                  scale: CurvedAnimation(
+                    parent: AnimationController(
+                      vsync: this,
+                      duration: Duration(milliseconds: 1500),
+                    )..forward(),
+                    curve: Curves.easeInOut,
+                  ),
+                  child: RiveAnimation.asset(
+                    'assets/loader',
+                    fit: BoxFit.fill,
+                  )
+                  //     .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                  //     .then(delay: 1600.milliseconds)
+                  //     .scaleXY(end: 1.1, curve: Curves.easeInOut)
+                  // // .tint(color: Colors.blue, end: 0.6)
+                  //     .rotate( duration: 10.seconds),
                 ),
               ),
             ],
-          ),
+          ).animate().fadeIn(duration: 1200.milliseconds),
         ),
       );
 }
